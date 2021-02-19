@@ -1,0 +1,194 @@
+# exercises from udemy course 'nuts and bolts of oauth 2.0'
+# https://dev-10724425-admin.okta.com/
+# https://www.random.org/
+# https://example-app.com/pkce
+# https://oauth.school/
+
+// authz code flow without refrecht token
+### url send to authz server => autz_endpoint?response_type&scope&client_id&state&redirect_uri&code_challenge&code_challenge_method
+https://dev-10724425.okta.com/oauth2/default/v1/authorize?
+response_type=code&
+scope=photos&
+client_id=0oa4nh6yqDmUo82ev5d6&
+state=25xUiX7Mv8&
+redirect_uri=https://example-app.com/redirect&
+code_challenge=MbND85c8ibbpRYFnXlntp2lSrX-JAam1DKMe1g8uZz0&
+code_challenge_method=S256
+
+### gives back a autz code (one time use) as a query param
+# https://example-app.com/redirect?
+# code=XPpxVPt8QT_pbtLjwHXLcS7UfFswQdwS6Az_5AHe8Mo&
+# state=25xUiX7Mv8
+
+### you can use that autz code to build a post requests wich will give back a bearer token in the response. 
+curl -X POST https://dev-10724425.okta.com/oauth2/default/v1/token \
+  -d grant_type=authorization_code \
+  -d redirect_uri=https://example-app.com/redirect \
+  -d client_id=0oa4nh6yqDmUo82ev5d6 \
+  -d client_secret=f6qUypygn0v1Q19gt3T2NF8y3nsZb_D_dAzHaDFv \
+  -d code_verifier=7836705228039ee8ac266b765b064dbc03e3a02a9c50606117790292 \
+  -d code=rUKITGwh56ea-CmIOuamb9l0PzXi9xmxjmu3Fzq6QZg
+
+# ###
+# POST /oauth2/default/v1/token HTTP/1.1
+# Host: dev-10724425.okta.com
+# Content-Type: application/x-www-form-urlencoded
+# Content-Length: 281
+
+# grant_type=authorization_code&redirect_uri=https://example-app.com/redirect&client_id=0oa4nh6yqDmUo82ev5d6&client_secret=f6qUypygn0v1Q19gt3T2NF8y3nsZb_D_dAzHaDFv&code_verifier=7836705228039ee8ac266b765b064dbc03e3a02a9c50606117790292&code=rUKITGwh56ea-CmIOuamb9l0PzXi9xmxjmu3Fzq6QZg
+
+### authz code flow with refresh token
+https://dev-10724425.okta.com/oauth2/default/v1/authorize?
+response_type=code&
+scope=offline_access+photos&
+client_id=0oa4nh6yqDmUo82ev5d6&
+state=25xUiX7Mv8&
+redirect_uri=https://example-app.com/redirect&
+code_challenge=MbND85c8ibbpRYFnXlntp2lSrX-JAam1DKMe1g8uZz0&
+code_challenge_method=S256
+
+###
+curl -X POST https://dev-10724425.okta.com/oauth2/default/v1/token \
+-d grant_type=authorization_code \
+-d redirect_uri=https://example-app.com/redirect \
+-d client_id=0oa4nh6yqDmUo82ev5d6 \
+-d client_secret=f6qUypygn0v1Q19gt3T2NF8y3nsZb_D_dAzHaDFv \
+-d code_verifier=7836705228039ee8ac266b765b064dbc03e3a02a9c50606117790292 \
+-d code=Nr-2mvRtgkrOPVcilMMwVzxDNsKFvUoAy73YjAUwFhY
+
+###
+curl -X POST https://dev-10724425.okta.com/oauth2/default/v1/token \
+  -d grant_type=refresh_token \
+  -d client_id=0oa4nh6yqDmUo82ev5d6 \
+  -d client_secret=f6qUypygn0v1Q19gt3T2NF8y3nsZb_D_dAzHaDFv \
+  -d refresh_token=z_9uh_aLGYcDqhSVLTYl1fQ_-UeTqb-5UsCHcQlN5Uw
+
+
+### spa app flow
+GET https://dev-10724425.okta.com/oauth2/default/v1/authorize
+?response_type=code
+&scope=photos
+&client_id=0oa4rilyqpc0cDVpo5d6
+&state=25xUiX7Mv8
+&redirect_uri=http://example-app.com/redirect
+&code_challenge=MbND85c8ibbpRYFnXlntp2lSrX-JAam1DKMe1g8uZz0
+&code_challenge_method=S256
+
+###
+# @YOUR_CLIENT_ID = 0oa4rilyqpc0cDVpo5d6
+# @YOUR_CODE_VERIFIER = 7836705228039ee8ac266b765b064dbc03e3a02a9c50606117790292
+# @CODE_CHALLANGE=MbND85c8ibbpRYFnXlntp2lSrX-JAam1DKMe1g8uZz0
+# @YOUR_AUTHORIZATION_CODE = 
+curl -X POST https://dev-10724425.okta.com/oauth2/default/v1/token \
+  -d grant_type=authorization_code \
+  -d redirect_uri=https://example-app.com/redirect \
+  -d client_id={{YOUR_CLIENT_ID}} \
+  -d code_verifier={{YOUR_CODE_VERIFIER}} \
+  -d code={{YOUR_AUTHORIZATION_CODE}}
+
+
+###
+#   curl -X POST https://dev-10724425.okta.com/oauth2/default/v1/token \
+#   -d grant_type=authorization_code \
+#   -d redirect_uri=https://example-app.com/redirect \
+#   -d client_id=0oa4nh6yqDmUo82ev5d6 \
+#   -d code_verifier=7836705228039ee8ac266b765b064dbc03e3a02a9c50606117790292 \
+#   -d code=XV8_fkrN2HPyjrNgZlR7qkpuIzpkksDHg4AYd4zidZk
+
+###
+curl -X POST https://dev-10724425.okta.com/oauth2/default/v1/token \
+  -d grant_type=authorization_code \
+  -d redirect_uri=http://example-app.com/redirect \
+  -d client_id=0oa4rilyqpc0cDVpo5d6 \
+  -d code_verifier=7836705228039ee8ac266b765b064dbc03e3a02a9c50606117790292 \
+  -d code=XPHg_XEqyhZW2MdRAkM8bAs04tu0ifdaYSxD_eX621k
+
+
+### client credentials grant
+@YOUR_CLIENT_ID = 0oa4rkfis9gy2wgGy5d6
+@YOUR_CLIENT_SECRET = MkMiWe4y-7qcVYOO9-5LiP6IpIbMJrVDJIJAnpR4
+@YOUR_CUSTOM_SCOPE = photos
+curl -X POST https://dev-10724425.okta.com/oauth2/default/v1/token \
+  -d grant_type=client_credentials \
+  -d client_id={{YOUR_CLIENT_ID}} \
+  -d client_secret={{YOUR_CLIENT_SECRET}} \
+  -d scope={{YOUR_CUSTOM_SCOPE}}
+
+
+
+  ### authz code flow with refresh token + openid
+https://dev-10724425.okta.com/oauth2/default/v1/authorize?
+response_type=code&
+scope=openid+profile+email&
+client_id=0oa4nh6yqDmUo82ev5d6&
+state=25xUiX7Mv8&
+redirect_uri=https://example-app.com/redirect&
+code_challenge=MbND85c8ibbpRYFnXlntp2lSrX-JAam1DKMe1g8uZz0&
+code_challenge_method=S256
+
+###
+curl -X POST https://dev-10724425.okta.com/oauth2/default/v1/token \
+-d grant_type=authorization_code \
+-d redirect_uri=https://example-app.com/redirect \
+-d client_id=0oa4nh6yqDmUo82ev5d6 \
+-d client_secret=f6qUypygn0v1Q19gt3T2NF8y3nsZb_D_dAzHaDFv \
+-d code_verifier=7836705228039ee8ac266b765b064dbc03e3a02a9c50606117790292 \
+-d code=agSGqVfJN4JdIaU6TeGFJBzmaPIcPW6woGHY-XHoas0
+
+### Check if access token is valid
+#@ACCESS_TOKEN = eyJraWQiOiJOVlpORmxSaFlnZUZYRVA0WEFsUkZIUUs2ZDM2Z1hicXpJZnp0bmJ5bGtrIiwiYWxnIjoiUlMyNTYifQ.eyJ2ZXIiOjEsImp0aSI6IkFULjZUam90OGZmOUhUaVNoWEhUN3kwanZ6LXJQV1dIcHVIMG5iV1djQy0tVzgiLCJpc3MiOiJodHRwczovL2Rldi0xMDcyNDQyNS5va3RhLmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6ImFwaTovL2RlZmF1bHQiLCJpYXQiOjE2MTIzMDIzMjcsImV4cCI6MTYxMjMwNTkyNywiY2lkIjoiMG9hNG5oNnlxRG1VbzgyZXY1ZDYiLCJ1aWQiOiIwMHU0ajhoczFpOG1Menc2YjVkNiIsInNjcCI6WyJlbWFpbCIsInByb2ZpbGUiLCJvcGVuaWQiXSwic3ViIjoidi52ZXJoZWlqQGdtYWlsLmNvbSJ9.obInlEmKWHA9txqF9BkHJH1ncPUWyhRY9PBvkIj5LcYsXIuxf7D6kiPEe5rehEXpg3KspMg-tpExY42HiMiT4xNA6u7HvCkOX8GXoGAdsJIz1sb9mgf7kTDzbqiybledRYYfWLaPEWW7lI47_luz0epTZV16H6gPMaGsajM8Q97khtauiMuSNMaaCfO5fOtypLM0zMBWzUTJm5pcR-hxJzNXXdouK1WTZXkqQo-joapKt-RG8hw6TX0Nhy37sdfBDjgAC-9XYhoVng-cWy2Zc0-eYUTmdZuww6SE8oxzcId1sCLQMDZRqqSic-W80QL1S8y-lOvPN6_ofhFBxJmJlA
+curl https://dev-10724425.okta.com/oauth2/default/v1/introspect \
+  -d client_id=0oa4nh6yqDmUo82ev5d6 \
+  -d client_secret=f6qUypygn0v1Q19gt3T2NF8y3nsZb_D_dAzHaDFv \
+  -d token={{ACCESS_TOKEN}}
+
+
+### token revocation
+curl https://dev-10724425.okta.com/oauth2/default/v1/revoke \
+  -d client_id=0oa4nh6yqDmUo82ev5d6 \
+  -d client_secret=f6qUypygn0v1Q19gt3T2NF8y3nsZb_D_dAzHaDFv \
+  -d token={{ACCESS_TOKEN}}
+
+### with scopes
+https://dev-10724425.okta.com/oauth2/default/v1/authorize?
+  response_type=code&
+  scope=photos+photos:create+photos:delete&
+  client_id=0oa4nh6yqDmUo82ev5d6&
+  state=25xUiX7Mv8&
+  redirect_uri=https://example-app.com/redirect&
+  code_challenge=MbND85c8ibbpRYFnXlntp2lSrX-JAam1DKMe1g8uZz0&
+  code_challenge_method=S256
+### without photos:create scope
+https://dev-10724425.okta.com/oauth2/default/v1/authorize?
+  response_type=code&
+  scope=photos+photos:delete&
+  client_id=0oa4nh6yqDmUo82ev5d6&
+  state=25xUiX7Mv8&
+  redirect_uri=https://example-app.com/redirect&
+  code_challenge=MbND85c8ibbpRYFnXlntp2lSrX-JAam1DKMe1g8uZz0&
+  code_challenge_method=S256
+###
+#@YOUR_AUTHORIZATION_CODE = qU5djnbaD_sxDZJuBzm_jY7_B8r6bymTKOlZOhW3PA4 
+#@YOUR_CLIENT_ID = 0oa4rkfis9gy2wgGy5d6
+#@YOUR_CLIENT_SECRET = MkMiWe4y-7qcVYOO9-5LiP6IpIbMJrVDJIJAnpR4
+#@YOUR_CODE_VERIFIER = 7836705228039ee8ac266b765b064dbc03e3a02a9c50606117790292
+curl -X POST https://dev-10724425.okta.com/oauth2/default/v1/token \
+  -d grant_type=authorization_code \
+  -d redirect_uri=https://example-app.com/redirect \
+  -d client_id=0oa4nh6yqDmUo82ev5d6 \
+  -d client_secret=f6qUypygn0v1Q19gt3T2NF8y3nsZb_D_dAzHaDFv \
+  -d code_verifier=7836705228039ee8ac266b765b064dbc03e3a02a9c50606117790292 \
+  -d code=3Va99oUb7aU7SFkqnaOWBypl1hN0KCCl4qZBdmKMy98
+
+### token introspection
+@ISSUER = https://dev-10724425.okta.com
+curl {{ISSUER}}/oauth2/default/v1/introspect \
+  -d client_id=0oa4nh6yqDmUo82ev5d6 \
+  -d client_secret=f6qUypygn0v1Q19gt3T2NF8y3nsZb_D_dAzHaDFv \
+  -d token=eyJraWQiOiJOVlpORmxSaFlnZUZYRVA0WEFsUkZIUUs2ZDM2Z1hicXpJZnp0bmJ5bGtrIiwiYWxnIjoiUlMyNTYifQ.eyJ2ZXIiOjEsImp0aSI6IkFULndEcThNYURMSllRaVROX3A4ck9iajZ2cndOVVFQYlpTY2FUbjNNNFY5SFEiLCJpc3MiOiJodHRwczovL2Rldi0xMDcyNDQyNS5va3RhLmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6ImFwaTovL2RlZmF1bHQiLCJpYXQiOjE2MTI0MzUzODUsImV4cCI6MTYxMjQzODk4NSwiY2lkIjoiMG9hNG5oNnlxRG1VbzgyZXY1ZDYiLCJ1aWQiOiIwMHU0ajhoczFpOG1Menc2YjVkNiIsInNjcCI6WyJwaG90b3MiLCJwaG90b3M6ZGVsZXRlIl0sInN1YiI6InYudmVyaGVpakBnbWFpbC5jb20ifQ.RUBLb0krUbdsRIr6oVcvwEtXKz35jSp_iBu40mVZ32greR2nbTH3QrsXTcLFbLpycl4hXtcTDIHC3Uw7fYkm9WZty57hvpsarndWvLriOFevC0j0fAMxZ-sI9uyUtOLS9JqnngL6YoSbcbLHxLLa6kdahota3_gBsxYGTjLoxBnFiO7gI12TIIzeIOe_C6MaFZnHOzOuSOlZ-yOCkABJnEA18tBLsb3KZ5X4-KNBi1vlRBCpsVsBRdp4aSXc1dMLftyuJnVd1hkdWU_npDwp6w3duptS_9gCMUnAcrniH7FsR-OojwC61CLIZLwvmahOtwECpBP7jY0tsjnANpY1Tg
+
+
+###
+
+different-lobster@example.com
+Outstanding-Cod-24
